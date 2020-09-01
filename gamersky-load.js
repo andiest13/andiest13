@@ -20,8 +20,14 @@
             parent.insertBefore(newElement,targetElement.nextSibling)
         }
     }
+    var start_btn = document.createElement("a");
+    start_btn.setAttribute("id","btn_start_haha");
+    start_btn.setAttribute("href","javascript:;");
+    start_btn.innerHTML = '开始';
+
 
     var hahadiv = document.createElement("div");
+    hahadiv.setAttribute("id","hahadiv");
     var commentsCount = 0;
     var result = location.pathname.match(/\/(\d*)\./);
     var article_num = result[1];
@@ -30,25 +36,72 @@
         for(var haha in photo_list){
             if( String(photo_list[haha].img_url).indexOf("http") != -1 ) html += '<div><img src="' + photo_list[haha].img_url + '" title="' + photo_list[haha].title + '" width="100%"/></div>';
         }
-        hahadiv.innerHTML += html;
-        insertAfter(hahadiv, document.getElementById("SOHUCS"));
+        if( have_load == 0 ){
+            document.getElementById("hahadiv").innerHTML = html + document.getElementById("hahadiv").innerHTML;
+        }else{
+            hahadiv.innerHTML += html;
+            insertAfter(hahadiv, document.getElementById("SOHUCS"));
+        }
     };
-    var commit_list = sessionStorage.getItem('commit_list' + article_num);
+    var commit_list = localStorage.getItem('commit_list' + article_num);
     var init_count = 0;
     var total_photo_list = [];
     var photo_list = [];
     var pageIndex = 1;
     var max_comment_id = 0;
     var have_load = 1;
+
+    var settime_ajax = function(){
+        setTimeout(function(){
+            have_load = 0
+            var now_time = (new Date()).valueOf();
+            var request = {
+                "articleId":article_num,
+                "minPraisesCount":0,
+                "repliesMaxCount":10,
+                "pageIndex":1,
+                "pageSize":10,
+                "order":
+                "createTimeDESC"
+            };
+            var url = encodeURI('https://cm.gamersky.com/appapi/GetArticleCommentWithClubStyle?request=' + JSON.stringify(request) + '&_=' + now_time);
+            load_data(url);
+        },1000);
+    }
     if(commit_list != null ){
         commit_list = JSON.parse(commit_list);
+        console.log(commit_list);
         init_count = commit_list.commentsCount;
         total_photo_list = commit_list.photo_list;
         max_comment_id = commit_list.max_comment_id;
         pageIndex = Math.ceil(init_count / 10);
-        handle_result(total_photo_list);
+        insertAfter(start_btn,document.getElementById("SOHUCS"));
+        start_btn.onclick = function(){
+            this.remove();
+            handle_result(total_photo_list);
+            settime_ajax();
+        }
     }else{
         commit_list = {};
+        insertAfter(start_btn,document.getElementById("SOHUCS"));
+        let now_time = (new Date()).valueOf();
+        let num = '18308087865817357132';
+        let callback = 'jQuery' + num + '_' + now_time++;
+
+        var request = {
+            "articleId":article_num,
+            "minPraisesCount":0,
+            "repliesMaxCount":10,
+            "pageIndex":1,
+            "pageSize":10,
+            "order":
+            "createTimeDESC"
+        };
+        let url = encodeURI('https://cm.gamersky.com/appapi/GetArticleCommentWithClubStyle?request=' + JSON.stringify(request) + '&_=' + now_time);
+        start_btn.onclick = function(){
+            this.remove();
+            load_data(url);
+        }
     }
 
     var load_data = function(url){
@@ -88,7 +141,7 @@
                 commit_list.commentsCount = commentsCount;
                 commit_list.photo_list = total_photo_list;
                 commit_list.max_comment_id = max_comment_id;
-                sessionStorage.setItem('commit_list' + article_num, JSON.stringify(commit_list));
+                localStorage.setItem('commit_list' + article_num, JSON.stringify(commit_list));
             }
             //开始下一轮
             if( have_load == 1){
@@ -114,39 +167,10 @@
                 var url = encodeURI('https://cm.gamersky.com/appapi/GetArticleCommentWithClubStyle?request=' + JSON.stringify(request) + '&_=' + now_time);
                 load_data(url);
             }else{
-                setTimeout(function(){
-                    have_load = 0
-                    var now_time = (new Date()).valueOf();
-                    var request = {
-                        "articleId":article_num,
-                        "minPraisesCount":0,
-                        "repliesMaxCount":10,
-                        "pageIndex":1,
-                        "pageSize":10,
-                        "order":
-                        "createTimeDESC"
-                    };
-                    var url = encodeURI('https://cm.gamersky.com/appapi/GetArticleCommentWithClubStyle?request=' + JSON.stringify(request) + '&_=' + now_time);
-                    load_data(url);
-                },1000);
+                settime_ajax();
             }
         });
     };
 
-    let now_time = (new Date()).valueOf();
-    let num = '18308087865817357132';
-    let callback = 'jQuery' + num + '_' + now_time++;
-
-    var request = {
-        "articleId":article_num,
-        "minPraisesCount":0,
-        "repliesMaxCount":10,
-        "pageIndex":1,
-        "pageSize":10,
-        "order":
-        "createTimeDESC"
-    };
-    let url = encodeURI('https://cm.gamersky.com/appapi/GetArticleCommentWithClubStyle?request=' + JSON.stringify(request) + '&_=' + now_time);
-
-    load_data(url);
+    
 })();
