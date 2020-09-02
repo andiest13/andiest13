@@ -128,7 +128,7 @@
                             "img_url":img_list[i].origin
                         };
                         photo_list.push(tmp);
-                        total_photo_list.push(tmp);
+                        total_photo_list.unshift(tmp);
                     }
                 }
             }
