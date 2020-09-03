@@ -1,0 +1,23 @@
+// ==UserScript==
+// @name         Gamersky list load
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Gamersky comments photo save!
+// @author       Andiest ziu
+// @match        *.gamersky.com/ent/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    setInterval(function(){
+        let now_time = (new Date()).valueOf();
+        let url = 'https://db2.gamersky.com/LabelJsonpAjax.aspx?jsondata={"type":"updatenodelabel","isCache":false,"nodeId":"20113","isNodeId":"true","page":1}&_=' + now_time;
+        fetch(encodeURI(url)).then(function(response) {
+            return response.text();
+        }).then(function(myJson) {
+            var load_data = eval(myJson);
+            document.getElementsByClassName("contentpaging")[0].innerHTML = load_data.body;
+        });
+    },2000);
+})();
